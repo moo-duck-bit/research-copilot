@@ -1,0 +1,23 @@
+# 비밀이 아닌 설정. 키 이름은 app/core/config.py의 Settings 필드를 대문자로 쓴 것이다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copilot-config
+data:
+  CLAUDE_MODEL: claude-sonnet-5
+  EMBEDDING_MODEL: voyage-3
+  MCP_STATELESS_HTTP: "true"           # 파드가 여러 개라 무상태여야 한다
+  READINESS_DB_TIMEOUT_SECONDS: "2"
+  DB_INIT_MAX_WAIT_SECONDS: "60"
+  LLM_RATE_LIMIT_RETRIES: "2"
+  LLM_RETRY_AFTER_CAP_SECONDS: "30"
+  LLM_TRANSIENT_RETRIES: "2"
+  LLM_BREAKER_FAILURE_THRESHOLD: "5"
+  LLM_BREAKER_COOLDOWN_SECONDS: "60"
+  DAILY_TOKEN_BUDGET: "2000000"
+  BUDGET_UTC_OFFSET_HOURS: "9"
+  LLM_MAX_CONCURRENCY: "4"             # 파드당 동시 LLM 호출 상한
+  MAX_CONTENT_CHARS: "60000"           # 자료 길이 상한(글자)
+  FULL_DOCUMENT_MAX_CHARS: "8000"      # 이보다 길면 노드마다 관련 부분만 발췌해 보낸다
+  ANALYSIS_STALE_AFTER_SECONDS: "900"  # 이보다 오래 '처리 중'이면 끊긴 작업으로 본다
+  SHUTDOWN_DRAIN_SECONDS: "280"        # 종료 시 진행 중 분석을 기다리는 시간(grace 300초 안)

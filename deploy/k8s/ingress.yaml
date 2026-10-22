@@ -1,0 +1,25 @@
+# k3s 기본 Ingress 컨트롤러(Traefik). 브라우저는 한 도메인만 알면 된다.
+#   /api, /mcp-server → api   /  → web
+# 도메인이 없으면 host 줄을 지운 채로 두면 서버 IP로 접속된다.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: copilot
+spec:
+  ingressClassName: traefik
+  rules:
+    - # host: copilot.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service: { name: api, port: { number: 8000 } }
+          - path: /mcp-server
+            pathType: Prefix
+            backend:
+              service: { name: api, port: { number: 8000 } }
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: web, port: { number: 3000 } }

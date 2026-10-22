@@ -1,0 +1,15 @@
+# 워크스페이스 루트에는 무관한 다른 프로젝트들이 있다.
+# 화이트리스트 방식: 이 프로젝트에 필요한 것만 빌드 컨텍스트에 포함한다.
+*
+!app
+!tests
+!scripts
+!eval
+!requirements.txt
+!pyproject.toml
+
+# 혹시라도 포함될 무거운/불필요 항목 제외
+**/__pycache__
+**/*.pyc
+.venv
+.pytest_cache

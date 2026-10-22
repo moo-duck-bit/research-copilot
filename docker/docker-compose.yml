@@ -1,0 +1,72 @@
+# 로컬 개발용. 포트는 모두 127.0.0.1에만 연다(공용 서버에서 외부 노출 방지, SSH 터널로 접속).
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: copilot
+      POSTGRES_PASSWORD: copilot
+      POSTGRES_DB: copilot
+    ports:
+      # 호스트 5432는 다른 postgres가 써서 5433으로 노출 (앱은 내부망 db:5432 사용)
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U copilot -d copilot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://copilot:copilot@db:5432/copilot
+      CLAUDE_MODEL: claude-sonnet-5
+      # API 키는 호스트 환경변수/.env 에서 주입 (하드코딩 금지)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-voyage-3}
+      DAILY_TOKEN_BUDGET: ${DAILY_TOKEN_BUDGET:-2000000}
+    ports:
+      # 웹은 내부망으로 api를 부르므로 이 포트는 MCP 클라이언트·curl용이다.
+      # 호스트 8000이 이미 쓰이고 있으면 .env에 API_PORT=8001처럼 바꾼다.
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    # 실측(유휴 134MiB, 부하 최대 153MiB) 기반. k8s limits와 같게 맞춘다.
+    mem_limit: ${API_MEM_LIMIT:-512m}
+    volumes:
+      # 골드셋을 호스트에서 편집하면 재빌드 없이 반영되도록 eval/ 라이브 마운트
+      - ../eval:/code/eval
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 프론트엔드는 기본 기동에서 제외 (--profile frontend 로 함께 기동, make up 이 그렇게 한다)
+  web:
+    profiles: ["frontend"]
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    ports:
+      # 호스트 3000이 이미 쓰이면 .env에 WEB_PORT=13000처럼 바꾼다.
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    # 실측(유휴 27MiB, 부하 최대 48MiB) 기반. k8s limits와 같게 맞춘다.
+    mem_limit: ${WEB_MEM_LIMIT:-192m}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/healthz"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:

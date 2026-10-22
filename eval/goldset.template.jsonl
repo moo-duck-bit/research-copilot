@@ -1,0 +1,2 @@
+{"doc_id": "<documents.jsonl의 doc_id>", "node_id": "<가설 트리 노드 id, 예: 2.1>", "gold_stance": "SUPPORTS | REFUTES | WEAK_RELATED | IRRELEVANT", "gold_rationale_sentences": ["원문에서 그대로 복사한 문장(SUPPORTS/REFUTES만). WEAK_RELATED/IRRELEVANT면 빈 배열 []"], "reviewed": true, "note": "자유 메모(선택)"}
+{"doc_id": "doc1", "node_id": "2.1", "gold_stance": "SUPPORTS", "gold_rationale_sentences": ["당사 자체 온라인몰의 매출 비중은 2022년 8%에서 2024년 19%로 상승했다."], "reviewed": true, "note": "예시 행 — 실제 라벨은 goldset.jsonl에 넣는다"}

@@ -1,0 +1,14 @@
+# 런타임 (CI 이미지와 로컬 테스트 이미지가 같도록 버전 고정)
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+fastmcp==3.4.5
+sqlalchemy[asyncio]==2.0.52
+asyncpg==0.31.0
+pydantic-settings==2.15.0
+anthropic==0.122.0
+voyageai==0.5.0
+httpx==0.28.1
+# tests
+pytest==9.1.1
+pytest-asyncio==1.4.0
+PyYAML==6.0.3

@@ -1,0 +1,11 @@
+[project]
+name = "ai-research-copilot"
+version = "0.0.1"
+description = "전략 컨설턴트용 AI 리서치 코파일럿 (human-in-the-loop)"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+# 워크스페이스 루트에 다른 프로젝트들이 섞여 있으므로 수집 범위를 tests/로 격리한다.
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"

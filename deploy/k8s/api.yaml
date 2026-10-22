@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api                       # 웹의 /api 프록시 기본 주소(http://api:8000)와 같은 이름
+spec:
+  selector:
+    app: api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 2                     # 무상태 MCP라 어느 파드로 가도 된다
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull               # GHCR 이미지가 private일 때만 필요
+      # 분석 1건은 수십 초~수 분 걸린다. 종료 신호 뒤 진행 중인 분석을 마저 끝내도록
+      # 앱이 최대 280초 기다리고(SHUTDOWN_DRAIN_SECONDS), preStop 5초를 더해 여유를 둔다.
+      # 30초였을 때는 롤링 배포마다 진행 중인 분석이 잘려 비용만 쓰고 결과가 사라졌다.
+      terminationGracePeriodSeconds: 300
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: api
+          image: research-copilot-api   # kustomization.yaml images에서 GHCR 주소·태그로 바뀐다
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: copilot-config
+            - secretRef:
+                name: copilot-secrets
+          # 시작: 스키마 준비가 DB를 최대 60초 기다리므로 그 시간을 덮는다.
+          startupProbe:
+            httpGet: { path: /livez, port: 8000 }
+            periodSeconds: 2
+            failureThreshold: 45
+          # liveness: 프로세스만 본다. DB를 보지 않는다(DB 지연에 정상 파드가 재시작되지 않게).
+          livenessProbe:
+            httpGet: { path: /livez, port: 8000 }
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          # readiness: DB까지 본다. 실패하면 트래픽만 빠진다. 앱 쪽 DB 확인 제한은 2초.
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8000 }
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          lifecycle:
+            preStop:              # 종료 전 엔드포인트에서 빠질 시간을 줘 롤링 업데이트 중 끊김을 막는다
+              exec:
+                command: ["sleep", "5"]
+          resources:
+            # 실측: 유휴 134MiB, 혼합 부하 12,000건 중앙값 141MiB·최대 153MiB.
+            # limit 96MiB로는 기동 직후 OOMKilled(exit 137)를 재현했다.
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: api

@@ -1,0 +1,23 @@
+# Argo CD가 Git의 deploy/k8s를 보고 클러스터를 자동으로 맞춘다.
+# 적용: kubectl apply -n argocd -f deploy/argocd/application.yaml
+# OWNER를 GitHub 사용자명으로 바꾼다. private 저장소면 Argo CD에 저장소 접근 정보를 먼저 등록한다.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: research-copilot
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/moo-duck-bit/research-copilot.git
+    targetRevision: main
+    path: deploy/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: research-copilot
+  syncPolicy:
+    automated:
+      prune: true          # Git에서 지운 리소스는 클러스터에서도 지운다 (수동으로 만든 Secret은 대상 아님)
+      selfHeal: true       # 클러스터에서 손으로 바꾼 것을 Git 상태로 되돌린다
+    syncOptions:
+      - CreateNamespace=true
