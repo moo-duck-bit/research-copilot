@@ -16,7 +16,7 @@ resources:
 images:
 - name: research-copilot-api
   newName: ghcr.io/moo-duck-bit/research-copilot-api
-  newTag: bc155e32a8a4e3d5f6bdf0a992f9e3441d6f6218
+  newTag: 6d74ec75d383c8f1cfa6aacbeab153afc4302f37
 - name: research-copilot-web
   newName: ghcr.io/moo-duck-bit/research-copilot-web
-  newTag: bc155e32a8a4e3d5f6bdf0a992f9e3441d6f6218
+  newTag: 6d74ec75d383c8f1cfa6aacbeab153afc4302f37
