@@ -238,3 +238,16 @@ class _FlatEmbedder(FakeEmbedder):
         else:
             v[0] = 1.0  # 자료 청크(질의)
         return v
+
+
+def test_short_document_fills_candidate_slots(env):
+    # 청크가 1개인 짧은 자료도 청크당 3개에 묶이지 않고 후보 상한(5)까지 본다.
+    c, _pid, llm, _ = env
+    many = NODES + [node(str(i), f"추가 가설 {i}번 매출", desc=f"매출 지표 {i}") for i in range(4, 9)]
+    pid2 = c.portal.call(create_project, many)
+    try:
+        llm.decide = lambda h, p: judgment("IRRELEVANT")
+        body = post(c, pid2, DOC).json()
+        assert body["chunk_count"] == 1 and len(body["candidate_node_ids"]) == 5
+    finally:
+        c.portal.call(drop_project, pid2)
