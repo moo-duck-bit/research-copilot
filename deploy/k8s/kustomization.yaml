@@ -2,21 +2,21 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: research-copilot
 labels:
-  - pairs:
-      app.kubernetes.io/part-of: research-copilot
+- pairs:
+    app.kubernetes.io/part-of: research-copilot
 resources:
-  - namespace.yaml
-  - configmap.yaml
-  - postgres.yaml
-  - api.yaml
-  - web.yaml
-  - ingress.yaml
+- namespace.yaml
+- configmap.yaml
+- postgres.yaml
+- api.yaml
+- web.yaml
+- ingress.yaml
 # CI(GitHub Actions)가 main에 푸시될 때마다 newName·newTag를 새 이미지로 바꿔 커밋한다.
 # Argo CD는 이 커밋을 보고 클러스터를 맞춘다.
 images:
-  - name: research-copilot-api
-    newName: ghcr.io/moo-duck-bit/research-copilot-api
-    newTag: latest
-  - name: research-copilot-web
-    newName: ghcr.io/moo-duck-bit/research-copilot-web
-    newTag: latest
+- name: research-copilot-api
+  newName: ghcr.io/moo-duck-bit/research-copilot-api
+  newTag: cd202a7c68aa9578f8718b62c4c8d23a6a2448a5
+- name: research-copilot-web
+  newName: ghcr.io/moo-duck-bit/research-copilot-web
+  newTag: cd202a7c68aa9578f8718b62c4c8d23a6a2448a5
