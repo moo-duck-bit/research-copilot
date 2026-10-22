@@ -102,7 +102,7 @@ async def retrieve_candidate_detail(
 ) -> Candidates:
     """각 청크의 임베딩 top-k 노드를 모으고, 키워드로만 걸린 노드에 자리를 일부 내준다."""
     chunk_embs = await provider.embed([c.text for c in chunks], input_type="query")
-    # 짧은 자료는 청크가 1~2개뿐이라 청크당 3개로는 후보 상한(5)을 못 채운다.
+    # 짧은 자료는 청크가 1~2개뿐이라 청크당 3개로는 후보 상한을 못 채운다.
     # 청크 수가 적으면 청크당 더 많이 뽑아 후보 상한까지 볼 수 있게 한다.
     per_chunk_k = min(max(per_chunk_k, -(-max_candidates // max(1, len(chunks)))), max_candidates)
     best: dict[str, float] = {}

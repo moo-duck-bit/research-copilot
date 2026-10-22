@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     max_goal_chars: int = 4_000
     # 이보다 긴 자료는 노드마다 전문 대신 관련 청크와 앞뒤만 발췌해 보낸다.
     full_document_max_chars: int = 8_000
+    # 자료 1건당 판정할 후보 노드 수 상한. 노드 하나당 LLM 호출 1번이라 비용과 비례한다.
+    max_candidates: int = 7
     excerpt_max_chars: int = 6_000
 
     # --- 분석 작업 ---

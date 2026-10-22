@@ -18,6 +18,7 @@ data:
   BUDGET_UTC_OFFSET_HOURS: "9"
   LLM_MAX_CONCURRENCY: "4"             # 파드당 동시 LLM 호출 상한
   MAX_CONTENT_CHARS: "60000"           # 자료 길이 상한(글자)
+  MAX_CANDIDATES: "7"                  # 자료 1건당 판정할 목표 수 상한(= LLM 호출 수)
   FULL_DOCUMENT_MAX_CHARS: "8000"      # 이보다 길면 노드마다 관련 부분만 발췌해 보낸다
   ANALYSIS_STALE_AFTER_SECONDS: "900"  # 이보다 오래 '처리 중'이면 끊긴 작업으로 본다
   SHUTDOWN_DRAIN_SECONDS: "280"        # 종료 시 진행 중 분석을 기다리는 시간(grace 300초 안)

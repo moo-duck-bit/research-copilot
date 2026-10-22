@@ -202,10 +202,12 @@ async def _mark_failed(content_id: str, exc: BaseException) -> None:
 
 
 async def run_analysis(
-    job: Job, llm: LLMProvider, embedder: EmbeddingProvider, *, max_candidates: int = 5
+    job: Job, llm: LLMProvider, embedder: EmbeddingProvider, *, max_candidates: int | None = None
 ) -> dict[str, Any]:
     try:
-        result = await _pipeline(job, llm, embedder, max_candidates=max_candidates)
+        result = await _pipeline(
+            job, llm, embedder, max_candidates=max_candidates or settings.max_candidates
+        )
     except BaseException as exc:
         await _mark_failed(job.content_id, exc)
         raise
@@ -349,7 +351,7 @@ async def analyze_content(
     embedder: EmbeddingProvider,
     *,
     source_url: str | None = None,
-    max_candidates: int = 5,
+    max_candidates: int | None = None,
     force: bool = False,
 ) -> dict[str, Any]:
     """접수부터 실행까지 한 번에 (MCP 툴, 평가 스크립트, 동기 REST가 쓴다)."""
